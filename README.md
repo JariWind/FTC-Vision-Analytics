@@ -2,15 +2,21 @@
 
 Computer vision software for analyzing FIRST Tech Challenge matches.
 
-## Current features
+## Features
 
-- Play video
-- Pause and resume (Spacebar)
-- Frame-by-frame navigation (A & D)
-- Display current frame number
-- Display FPS
-- Close video (Q) 
-- Show video statistics in terminal
+### Video Analysis
+- Load FTC match videos
+- Real-time video playback
+- Pause and resume playback
+- Frame-by-frame navigation
+- Display current frame number and FPS
+
+### Field Calibration
+- Select field reference points manually (Mouse-click)
+- Support for 6 calibration points
+- Named calibration points
+- Visualize selected points on the video frame
+- Reset selected points (R)
 
 ## Roadmap
 
