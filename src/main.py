@@ -28,8 +28,17 @@ paused = False
 
 frame_time = 1 / fps
 last_frame_time = time.perf_counter()
+NUM_POINTS = 6
 
-
+POINT_NAMES = [
+    "Top Mid",
+    "Left Mid",
+    "Bottom Left",
+    "Bottom Right",
+    "Right Mid",
+    "Center"
+]
+points = []
 def load_frame(number):
     """
     Laadt een specifiek frame.
@@ -45,6 +54,23 @@ def load_frame(number):
 
 frame = load_frame(frame_number)
 
+def mouse_callback(event, x, y, flags, param):
+
+    global points
+
+    if event == cv2.EVENT_LBUTTONDOWN:
+
+        if len(points) < NUM_POINTS:
+
+            points.append((x, y))
+
+            index = len(points) - 1
+
+            print(f"{POINT_NAMES[index]}: ({x}, {y})")
+
+cv2.namedWindow("FTC Vision Analytics")
+cv2.setMouseCallback("FTC Vision Analytics", mouse_callback)
+
 if frame is None:
     print("Kan eerste frame niet laden.")
     exit()
@@ -53,6 +79,36 @@ if frame is None:
 while True:
 
     display = frame.copy()
+
+    for i, point in enumerate(points):
+
+        cv2.circle(
+            display,
+            point,
+            3,
+            (0, 0, 255),
+            -1
+        )
+
+        # Standaard: rechts boven het punt
+        text_x = point[0] + 8
+        text_y = point[1] - 8
+
+        if POINT_NAMES[i] == "Bottom Right":
+            text_x = point[0] - 100
+
+        if POINT_NAMES[i] == "Right Mid":
+            text_x = point[0] - 70
+
+        cv2.putText(
+            display,
+            POINT_NAMES[i],
+            (text_x, text_y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 0, 255),
+            1
+        )
 
     cv2.putText(
         display,
@@ -101,6 +157,11 @@ while True:
             frame_number -= 1
             frame = load_frame(frame_number)
 
+    elif key == ord("r"):
+
+        points.clear()
+
+        print("Punten gewist.")
 
     if not paused:
 
