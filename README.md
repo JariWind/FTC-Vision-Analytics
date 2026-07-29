@@ -17,11 +17,19 @@ Computer vision software for analyzing FIRST Tech Challenge matches.
 - Named calibration points
 - Visualize selected points on the video frame
 - Reset selected points (R)
+- Define real-world field coordinates
+- Calculate homography matrix
+
+## Preview
+
+Field calibration with selected reference points:
+
+![Field Calibration](screenshots/field_calibration.png)
 
 ## Roadmap
 
 - [x] Milestone 1: Video Controls
-- [ ] Milestone 2: Field calibration
+- [x] Milestone 2: Field calibration
 - [ ] Milestone 3: Bird's-eye transformation
 - [ ] Milestone 4: Robot tracking
 - [ ] Milestone 5: Heatmaps

@@ -1,5 +1,6 @@
 import cv2
 import time
+import numpy as np
 
 video_path = "videos/solo_test.mp4"
 
@@ -38,6 +39,8 @@ POINT_NAMES = [
     "Right Mid",
     "Center"
 ]
+
+homography = None
 points = []
 def load_frame(number):
     """
@@ -68,6 +71,9 @@ def mouse_callback(event, x, y, flags, param):
 
             print(f"{POINT_NAMES[index]}: ({x}, {y})")
 
+        if len(points) == NUM_POINTS:
+            print("Alle punten geselecteerd.")
+
 cv2.namedWindow("FTC Vision Analytics")
 cv2.setMouseCallback("FTC Vision Analytics", mouse_callback)
 
@@ -79,6 +85,27 @@ if frame is None:
 while True:
 
     display = frame.copy()
+
+    if len(points) == NUM_POINTS and homography is None:
+
+        image_points = np.array(points, dtype=np.float32)
+
+        field_points = np.array([
+            [183,   0],
+            [  0, 183],
+            [  0, 366],
+            [366, 366],
+            [366, 183],
+            [183, 183]
+        ], dtype=np.float32)
+
+        homography, status = cv2.findHomography(
+            image_points,
+            field_points
+        )
+
+        print("Homography:")
+        print(homography)
 
     for i, point in enumerate(points):
 
@@ -160,6 +187,7 @@ while True:
     elif key == ord("r"):
 
         points.clear()
+        homography = None
 
         print("Punten gewist.")
 
