@@ -42,6 +42,8 @@ POINT_NAMES = [
 
 homography = None
 points = []
+click_point = None
+
 def load_frame(number):
     """
     Laadt een specifiek frame.
@@ -57,9 +59,33 @@ def load_frame(number):
 
 frame = load_frame(frame_number)
 
+field = cv2.imread("assets/field.png")
+
+if field is None:
+    print("Kan field.png niet laden.")
+    exit()
+
+FIELD_SIZE_CM = 366
+field_height, field_width = field.shape[:2]
+SCALE = field_width / FIELD_SIZE_CM
+
+field_points = np.array([
+    [183 * SCALE,   0 * SCALE],
+    [0 * SCALE,   183 * SCALE],
+    [0 * SCALE,   366 * SCALE],
+    [366 * SCALE, 366 * SCALE],
+    [366 * SCALE, 183 * SCALE],
+    [183 * SCALE, 183 * SCALE]
+], dtype=np.float32)
+
+if field is None:
+    print("Kan field.png niet laden.")
+    exit()
+
 def mouse_callback(event, x, y, flags, param):
 
     global points
+    global click_point
 
     if event == cv2.EVENT_LBUTTONDOWN:
 
@@ -71,10 +97,20 @@ def mouse_callback(event, x, y, flags, param):
 
             print(f"{POINT_NAMES[index]}: ({x}, {y})")
 
+        else:
+
+            click_point = (x, y)
+
+            print(f"Test klik: ({x}, {y})")
+
         if len(points) == NUM_POINTS:
             print("Alle punten geselecteerd.")
 
-cv2.namedWindow("FTC Vision Analytics")
+cv2.namedWindow("FTC Vision Analytics", cv2.WINDOW_AUTOSIZE)
+cv2.namedWindow("Field View", cv2.WINDOW_NORMAL)
+
+cv2.resizeWindow("Field View", 500, 500)
+
 cv2.setMouseCallback("FTC Vision Analytics", mouse_callback)
 
 if frame is None:
@@ -85,19 +121,11 @@ if frame is None:
 while True:
 
     display = frame.copy()
+    field_display = field.copy()
 
     if len(points) == NUM_POINTS and homography is None:
 
         image_points = np.array(points, dtype=np.float32)
-
-        field_points = np.array([
-            [183,   0],
-            [  0, 183],
-            [  0, 366],
-            [366, 366],
-            [366, 183],
-            [183, 183]
-        ], dtype=np.float32)
 
         homography, status = cv2.findHomography(
             image_points,
@@ -137,6 +165,51 @@ while True:
             1
         )
 
+    if homography is not None and click_point is not None:
+
+        camera_point = np.array(
+            [[[click_point[0], click_point[1]]]],
+            dtype=np.float32
+        )
+
+        field_point = cv2.perspectiveTransform(
+            camera_point,
+            homography
+        )
+
+        x = int(field_point[0][0][0])
+        y = int(field_point[0][0][1])
+
+        cv2.circle(
+            field_display,
+            (x, y),
+            25,
+            (255, 0, 0),
+            -1
+        )
+
+    if homography is not None:
+
+        for point in points:
+
+            camera_point = np.array([[[point[0], point[1]]]], dtype=np.float32)
+
+            field_point = cv2.perspectiveTransform(
+                camera_point,
+                homography
+            )
+
+            x = int(field_point[0][0][0])
+            y = int(field_point[0][0][1])
+
+            cv2.circle(
+                field_display,
+                (x, y),
+                15,
+                (0, 0, 255),
+                -1
+            )
+
     cv2.putText(
         display,
         f"Frame: {frame_number}/{total_frames}",
@@ -156,8 +229,14 @@ while True:
         (0, 255, 0),
         2
     )
-
     cv2.imshow("FTC Vision Analytics", display)
+
+    field_view = cv2.resize(
+        field_display,
+        (600, 600)
+    )
+
+    cv2.imshow("Field View", field_view)
 
     key = cv2.waitKey(1)
 
